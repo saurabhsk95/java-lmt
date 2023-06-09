@@ -1,0 +1,54 @@
+# write kubernetes manifest file for deployment and service  
+# Path: sample-java-app-lmt\k8s\deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-java-app-lmt
+  labels:
+    app: sample-java-app-lmt
+spec:
+
+    replicas: 1
+    selector:
+        matchLabels:
+          app: sample-java-app-lmt
+    template:
+        metadata:
+          labels:
+              app: sample-java-app-lmt
+        spec:
+          containers:
+            - name: sample-java-app-lmt
+              image: ghcr.io/cybage-devops/sample-java-app-lmt:latest
+              imagePullPolicy: Always
+              ports:
+                - containerPort: 8085
+              env:
+                - name: LOG_LEVEL
+                  value: "INFO"
+                - name: LOG_FILE
+                  value: "/var/log/app.log"
+              volumeMounts:
+                - name: log-volume
+                  mountPath: /var/log
+          imagePullSecrets:
+            - name: dockerconfigjson-github-com
+          volumes:
+            - name: log-volume
+              emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sample-java-app-lmt
+spec:
+
+    selector:
+        app: sample-java-app-lmt
+    ports:
+    - protocol: TCP
+      port: 8085
+      targetPort: 8085
+    type: LoadBalancer
+
